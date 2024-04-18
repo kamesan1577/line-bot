@@ -4,6 +4,8 @@ service: crypto-info-line-bot
 
 frameworkVersion: "3"
 
+useDotenv: true
+
 provider:
   name: aws
   runtime: python3.9
@@ -18,16 +20,23 @@ functions:
           path: /webhook
           method: POST
           cors: true
-  rateHandler:
-    handler: handler.run
-    events:
-      # Invoke Lambda function every minute
-      - schedule: rate(1 minute)
+    environment:
+      CHANNEL_ACCESS_TOKEN: ${env:CHANNEL_ACCESS_TOKEN}
+      CHANNEL_SECRET: ${env:CHANNEL_SECRET}
+      COINCHECK_API_KEY: ${env:COINCHECK_API_KEY}
+      COINCHECK_SECRET_KEY: ${env:COINCHECK_SECRET_KEY}
+      TARGET_GROUP_ID: ${env:TARGET_GROUP_ID}
   cronHandler:
-    handler: handler.run
+    handler: handler.lambda_handler_cron
     events:
-      # Invoke Lambda function every 2nd minute from Mon-Fri
-      - schedule: cron(0/2 * ? * MON-FRI *)
+      # Invoke Lambda function every 21:00 Friday
+      - schedule: cron(0 21 ? * FRI *)
+    environment:
+      CHANNEL_ACCESS_TOKEN: ${env:CHANNEL_ACCESS_TOKEN}
+      CHANNEL_SECRET: ${env:CHANNEL_SECRET}
+      COINCHECK_API_KEY: ${env:COINCHECK_API_KEY}
+      COINCHECK_SECRET_KEY: ${env:COINCHECK_SECRET_KEY}
+      TARGET_GROUP_ID: ${env:TARGET_GROUP_ID}
 
 package:
   exclude:
