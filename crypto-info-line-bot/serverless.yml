@@ -1,0 +1,46 @@
+org: kamesan1577
+app: crypto-info
+service: crypto-info-line-bot
+
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: python3.9
+  architecture: x86_64
+  region: ap-northeast-1
+
+functions:
+  apiHandler:
+    handler: handler.lambda_handler
+    events:
+      - http:
+          path: /webhook
+          method: POST
+          cors: true
+  rateHandler:
+    handler: handler.run
+    events:
+      # Invoke Lambda function every minute
+      - schedule: rate(1 minute)
+  cronHandler:
+    handler: handler.run
+    events:
+      # Invoke Lambda function every 2nd minute from Mon-Fri
+      - schedule: cron(0/2 * ? * MON-FRI *)
+
+package:
+  exclude:
+    - node_modules/**
+
+plugins:
+  - serverless-python-requirements
+  - serverless-offline
+
+custom:
+  pythonRequirements:
+    dockerImage: public.ecr.aws/sam/build-python3.9:latest-x86_64
+    dockerizePip: true
+    useDownloadCache: true
+    useStaticCache: true
+    slim: true
