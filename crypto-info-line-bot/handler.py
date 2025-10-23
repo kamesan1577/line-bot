@@ -37,22 +37,24 @@ etherscanApi = OptimisticEtherscanApi(ETHERSCAN_API_KEY, COINMARKETCAP_API_KEY, 
 @web_hook_handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     message = event.message.text
+
     if message == '残高':
         response = Summary.balance()
-    if message == '取引履歴':
+    elif message == '取引履歴':
         response = Summary.transaction()
-    if message == 'レート':
+    elif message == 'レート':
         response = Summary.rate()
-
-    if message == 'test':
+    elif message == 'test':
         response = 'テストメッセージです。'
-    if message == ("help" or "ヘルプ"):
+    elif message == 'help' or message == 'ヘルプ':
         response = textwrap.dedent(f"""
         以下のコマンドを入力してください。
         残高: 現在の残高を表示します。
         取引履歴: 直近の取引履歴を表示します。
         レート: 現在のレートを表示します。
         """).strip()
+    else:
+        response = 'コマンドが認識されませんでした。help または ヘルプ と入力してください。'
 
     logger.info(response)
     try:
@@ -163,27 +165,34 @@ class Summary:
         合計残高(円 + BTC + ETH): {coincheck_total_balance_jpy:,} 円
         """
 
-        wld_data = etherscanApi.get_balance("WLD")
-        usdc_data = etherscanApi.get_balance("USDC")
+        # Etherscan API V1が非推奨のため一時的に無効化
+        # wld_data = etherscanApi.get_balance("WLD")
+        # usdc_data = etherscanApi.get_balance("USDC")
 
-        wld_balance = wld_data['balance']["WLD"]
-        usdc_balance = usdc_data['balance']["USDC"]
-        provider_name = wld_data['provider_name']
+        # wld_balance = wld_data['balance']["WLD"]
+        # usdc_balance = usdc_data['balance']["USDC"]
+        # provider_name = wld_data['provider_name']
 
-        wld_balance_jpy = int(EtherscanUtils.convert_x_to_jpy("WLD", wld_balance))
-        usdc_balance_jpy = int(EtherscanUtils.convert_x_to_jpy("USDC", usdc_balance))
-        logger.info(wld_balance)
-        logger.info(usdc_balance)
+        # wld_balance_jpy = int(EtherscanUtils.convert_x_to_jpy("WLD", wld_balance))
+        # usdc_balance_jpy = int(EtherscanUtils.convert_x_to_jpy("USDC", usdc_balance))
+        # logger.info(wld_balance)
+        # logger.info(usdc_balance)
 
-        optimism_total_balance = wld_balance_jpy + usdc_balance_jpy
+        # optimism_total_balance = wld_balance_jpy + usdc_balance_jpy
+        # message += f"""
+        # {provider_name}の残高は以下の通りです。
+        # WLD: {wld_balance:,} WLD
+        # (円換算: {wld_balance_jpy:,}円)
+        # USD Coin: {usdc_balance:,} USDC
+        # (円換算: {usdc_balance_jpy:,}円)
+
+        # 合計残高(WLD + USDC): {optimism_total_balance:,} 円
+        # """
+
+        # Optimism残高を0に設定（一時的）
+        optimism_total_balance = 0
         message += f"""
-        {provider_name}の残高は以下の通りです。
-        WLD: {wld_balance:,} WLD
-        (円換算: {wld_balance_jpy:,}円)
-        USD Coin: {usdc_balance:,} USDC
-        (円換算: {usdc_balance_jpy:,}円)
-
-        合計残高(WLD + USDC): {optimism_total_balance:,} 円
+        Optimism残高: 一時的に無効化中（API V1非推奨のため）
         """
 
         total_balance = coincheck_total_balance_jpy + optimism_total_balance
@@ -233,17 +242,22 @@ class Summary:
         イーサリアム: {int(float(eth_rate['rate'])):,} 円
         """
 
-        wld_rate = etherscanApi.get_rate("WLD")
-        usdc_rate = etherscanApi.get_rate("USDC")
-        provider_name = wld_rate['provider_name']
+        # Etherscan API V1が非推奨のため一時的に無効化
+        # wld_rate = etherscanApi.get_rate("WLD")
+        # usdc_rate = etherscanApi.get_rate("USDC")
+        # provider_name = wld_rate['provider_name']
 
-        logger.info(wld_rate)
-        logger.info(usdc_rate)
+        # logger.info(wld_rate)
+        # logger.info(usdc_rate)
+
+        # message += f"""
+        # {provider_name}のレートは以下の通りです。
+        # WLD: {int(float(wld_rate['rate'])):,} 円
+        # USD Coin: {int(float(usdc_rate['rate'])):,} 円
+        # """
 
         message += f"""
-        {provider_name}のレートは以下の通りです。
-        WLD: {int(float(wld_rate['rate'])):,} 円
-        USD Coin: {int(float(usdc_rate['rate'])):,} 円
+        Optimismレート: 一時的に無効化中（API V1非推奨のため）
         """
 
         return textwrap.dedent(message).strip()
